@@ -1,0 +1,181 @@
+k-means clustering
+
+library(cluster)
+library(ggplot2)
+#library(plyr)
+#library(lattice)
+#library(graphics)
+x<-c(185,170,168,179,182,188)
+y<-c(72,56,60,68,72,77)
+clsample<-data.frame(x,y)
+clsample
+dim(clsample)
+clsample1<-data.matrix(clsample)
+clsample1
+#cldata<-clsample1[1:2,]
+#cldata
+wss<-vector(mode="numeric",length=6)
+wss
+#wss<-(nrow(clsample1)-1)*sum(apply(clsample1,2,var))
+#wss
+#for(i in 1:6) {
+# wss[i]=sum(kmeans(cldata,centers=i,nstart=25)$withinss)
+#}
+km=kmeans(clsample1,2,nstart=10)
+km
+km$cluster
+km$centers
+km$withinss
+km$betweenss
+km$totss
+#plot(clsample1[km$cluster ==1,],col="red",xlim=c(min(clsample1[,1]),max(clsample1[,1])),ylim=c(min(clsample1[,2]),max(clsample1[,2])))
+#points(clsample1[km$cluster == 2,],col="blue")
+plot(y~x,clsample,col=km$cluster)
+
+
+linear regression
+
+getwd()
+setwd("C:/Users/User/Downloads")
+getwd()
+var1<-read.csv("Mult_Reg_Yield.csv")
+var1
+set.seed(1234)
+ind<-sample(2,nrow(var1),replace=TRUE,prob=c(0.7,0.3))
+ind
+length(ind)
+training<-var1[ind==1,]
+testing<-var1[ind==2,]
+model<-lm(X.Yield ~ Time +Temperature,data=training)
+model
+summary(model)
+plot(X.Yield ~ Time,training)
+abline(model,col="red")
+modelnew<-lm(X.Yield ~ Time,data=training)
+modelnew
+summary(modelnew)
+plot(X.Yield ~ Time,training)
+abline(modelnew,col="red")
+
+
+decision tree
+
+#install.packages("rpart.plot")
+library("rpart")
+library("rpart.plot")
+play<-c('yes','no','yes','no','yes','yes','yes','yes','yes','no')
+outlook<-c('rainy','rainy','overcast','sunny','rainy','sunny','rainy','sunny','overcast','sunny')
+Temperature<-c('cool','cool','hot','mild','cool','cool','cool','hot','mild','mild')
+Humidity<-c('normal','normal','high','high','normal','normal','normal','normal','high','high')
+Wind<-c('FALSE','TRUE','FALSE','FALSE','FALSE','FALSE','FALSE','FALSE','TRUE','TRUE')
+play_decision<-cbind(play,outlook,Temperature,Humidity,Wind)
+play_decision
+play_decision=as.data.frame(play_decision)
+play_decision
+summary(play_decision)
+fit=rpart(play ~ outlook + Temperature  +Humidity +Wind,method="class",data=play_decision,control=rpart.control(minsplit=1),parms=list(split='information'))
+fit
+str(fit)
+#rpart.plot(fit,type=4,extra=1)
+rpart.plot(fit,type=4,extra=2,clip.right.labs=FALSE,varlen=0,faclen=0)
+newdata<-data.frame(outlook="rainy",Temperature="mild",Humidity="high",Wind="FALSE")
+newdata
+predict(fit,newdata=newdata,type="prob")
+predict(fit,newdata=newdata,type="class")
+#?rpart.plot
+newypred<-fitted(modelnew)                   #predict y values  for each x value
+newypred
+pred<-predict(modelnew,training)             #Both are same
+pred
+testpred<-predict(modelnew,testing)
+testpred
+predict(model,data.frame(Time=200,Temperature=240))
+predict(modelnew,data.frame(Time=200,Temperature=240))
+#setwd("C:/Users/User/Downloads")
+
+
+Naïve bayes
+
+#install.packages("e1071")
+library(e1071)
+setwd("C:/Users/User/Downloads")
+grep(".csv",list.files(),value = T)
+b<-read.csv("samplebayes.csv")
+b
+class(b)
+testset<-data.frame(Age="<=30",Income="Medium",JobSatisfaction="No",Desire="Fair",Enrolls="")
+testset
+b<-rbind(b,testset)
+b
+traindata <- data.frame(b[1:14,])
+testdata <- data.frame(b[15,])
+traindata
+testdata
+bayesmodel <- naiveBayes(Enrolls ~ Age+Income+JobSatisfaction+Desire,traindata)
+bayesmodel
+results <- predict (bayesmodel,testdata)
+results
+modell = naiveBayes(Enrolls ~ ., traindata, laplace=.01)
+modell
+results1<-predict(modell,testdata)
+results1
+
+
+matrix plot
+
+Length<-c(20,21,22,23,21,20)
+Speed<-c(12,14,12,16,20,21)
+Algae<-c(40,45,45,80,75,65) 
+NO3<-c(2.25,2.15,1.75,1.95,1.95,2.75)
+BOD<-c(200,180,135,120,110,120)
+mf<-data.frame(Length,Speed,Algae,NO3,BOD)
+mf
+Opt=par(mfrow=c(1,2))
+Opt
+plot(Length~BOD,data=mf, main='plot1')
+#plot.new()
+#plot.new()
+plot(Length ~ NO3,data=mf,main='plot4')
+
+
+logistic regression
+
+#install.packages("ROCR")
+library(ROCR)
+list.files()
+getwd()
+#setwd("c:/Program Files/Rstudio/R/Dataset")
+setwd("C:/Users/User/Downloads")
+getwd()
+grep(".csv",list.files(),value = T)
+var1<-read.csv("Churn_Modelling (1).csv")
+var1
+modellogit<-glm(Exited ~ CreditScore+Age+Tenure+Balance+NumOfProducts+HasCrCard+IsActiveMember+EstimatedSalary,data=var1,family = binomial(link = "logit"))
+modellogit
+summary(modellogit)
+modeloptimiz<-glm(Exited ~ Age+Balance+IsActiveMember,data=var1,family = binomial(link = "logit"))
+modeloptimiz
+modeloptimiz$null.deviance
+modeloptimiz$deviance
+age<-var1$Age
+Bal<-var1$Balance
+isAct<-var1$IsActiveMember
+exit<-var1$Exited
+var2<-cbind.data.frame(age,Bal,isAct,exit)
+var2
+pred<-predict(modeloptimiz,type="response")
+predobj<-prediction(pred,var2$exit)
+predobj
+rocobj<-performance(predobj,measure="tpr",x.measure="fpr")
+aucobj=performance(predobj,measure="auc")
+rocobj
+aucobj
+class(aucobj)
+plot(rocobj,main=paste("Area under curve",round(aucobj@y.values[[1]],4)))
+aucobj@y.values
+newdata=data.frame(Age=42,Balance=99670.00,IsActiveMember=1)
+newdata
+p<-predict(modeloptimiz,newdata,type="response")
+p
+
+
